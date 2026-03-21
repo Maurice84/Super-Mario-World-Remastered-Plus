@@ -8,6 +8,7 @@ const valid_hashes := [
 	"c6808e082ab343be554d07f2b3eb157c3c5134b364a2ffb3806a67f17e0992d0", ## JPN 1.0
 	"a6549142be41d0c9efceaaddd7010341cbac8438f612f4eda410590128a03ea5", ## JPN w/ header
 	
+	
 	"b5be1dba3012b6811a5660fbf2981cb23cdd1e48f845a42df00f0f55b19f0392", ## EU 1.0
 	"5cc54b1e5c8d3c7701a5e20514145c3b36f15f26fe0a4fe6d2e43677e4b4eda9", ## EU 1.1
 	]
@@ -18,7 +19,7 @@ func _ready() -> void:
 	if verify_rom():
 		proceed()
 	else:
-		$Text/Path.text = ProjectSettings.globalize_path("user://")
+		$Text/Path.text = get_rom_path_display()
 		$ColorRect.hide()
 
 func run_check() -> void:
@@ -34,10 +35,35 @@ func _process(delta: float) -> void:
 		run_check()
 
 func verify_rom() -> bool:
-	var rom_path := "user://baserom.sfc"
-	if !FileAccess.file_exists(rom_path):
-		rom_path = "res://baserom.sfc"
+	var rom_path := get_rom_path()
+	if rom_path == "":
+		return false
 	return valid_hashes.has(FileAccess.get_sha256(rom_path))
+
+func get_rom_path() -> String:
+	var paths = [
+		"user://baserom.sfc",
+		"res://baserom.sfc",
+		get_android_rom_path()
+	]
+	for path in paths:
+		if path != "" && FileAccess.file_exists(path):
+			return path
+	return ""
+
+func get_android_rom_path() -> String:
+	var documents_dir = OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS)
+	if documents_dir == "":
+		return ""
+	if !documents_dir.ends_with("/"):
+		documents_dir += "/"
+	return documents_dir + "baserom.sfc"
+
+func get_rom_path_display() -> String:
+	if OS.get_name() == "Android":
+		return get_android_rom_path()
+	else:
+		return ProjectSettings.globalize_path("user://")
 
 func proceed() -> void:
 	TransitionManager.transition_to_menu("res://Instances/UI/Menus/disclaimer.tscn", self)

@@ -89,6 +89,7 @@ window/size/viewport_width=480
 window/size/viewport_height=270
 window/size/initial_position_type=3
 window/stretch/mode="viewport"
+window/stretch/aspect="ignore"
 
 [dotnet]
 
