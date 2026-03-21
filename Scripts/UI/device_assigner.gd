@@ -19,18 +19,20 @@ func _ready() -> void:
 	hide()
 
 func _process(delta: float) -> void:
-  label.modulate = CoopManager.player_colours[current_player_id]
-  label.text = "P" + str(current_player_id + 1) + "\n Press Any Button..." + "\n Press ESC to Cancel.."
-  print(assigned_joypads);
-  if active:
-    if Input.is_action_just_pressed("ui_back"):
-      cancel_assignment()
+	label.modulate = CoopManager.player_colours[current_player_id]
+	label.text = "P" + str(current_player_id + 1) + "\n Press Any Button..." + "\n Press ESC to Cancel.."
+	print(assigned_joypads);
+	if assigned_joypads.size() > 0:
+		$TouchScreenButton.hide()
+	if active:
+		if Input.is_action_just_pressed("ui_back"):
+			cancel_assignment()
 
 func open() -> void:
 	InputMap.load_from_project_settings()
 	assigned_joypads = []
 	show()
-	touchscreen_inactivity_timer = 0.0  # Reset inactivity timer
+	$TouchScreenButton.show()
 	current_player_id = 0
 	remove_inputs()
 	await get_tree().create_timer(0.1).timeout
@@ -112,5 +114,3 @@ func _on_touchscreen_chosen() -> void:
 	GameManager.has_touchscreen = false
 	proceed()
 	$TouchScreenButton.hide()
-
-
