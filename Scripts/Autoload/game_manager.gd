@@ -127,6 +127,8 @@ func _process(delta: float) -> void:
 		$Mobile.visible = false
 		has_touchscreen = false
 		$Mobile.offset = Vector2(10000.0, 0.0)
+		# Revert input mappings to original when hiding touchscreen
+		InputMap.load_from_project_settings()
 	
 	if is_instance_valid(player):
 		riding_yoshi = player.riding_yoshi
