@@ -37,9 +37,13 @@ var player_power_overrides := [null, null, null, null]
 var player_yoshis = [false, false, false, false]
 var yoshi_colours = [Yoshi.colours.GREEN, Yoshi.colours.GREEN, Yoshi.colours.GREEN, Yoshi.colours.GREEN]
 var player_device_ids := [0, 1, 2, 3]
+var trigger_states := {}
 var pipe_exiting := false
 var players_connected := 1
 var crown_player := -1
+
+const TRIGGER_PRESS_THRESHOLD := 0.5
+const TRIGGER_RELEASE_THRESHOLD := 0.4
 
 var camera_distance_zoom_enabled := false
 
@@ -56,6 +60,29 @@ var game_overed_players := {}
 func _ready() -> void:
 	for i in Input.get_connected_joypads():
 		print("HI!" + str(Input.get_joy_name(i) + str(i)))
+
+func _input(event: InputEvent) -> void:
+	if event is not InputEventJoypadMotion:
+		return
+	if event.axis != JOY_AXIS_TRIGGER_LEFT and event.axis != JOY_AXIS_TRIGGER_RIGHT:
+		return
+	var player_id := player_device_ids.find(event.device)
+	if player_id == -1:
+		return
+	var action := "dive" if event.axis == JOY_AXIS_TRIGGER_LEFT else "spin_jump"
+	var action_name := get_player_input_str(action, player_id)
+	var trigger_key := str(event.device) + ":" + action
+	var was_pressed: bool = trigger_states.get(trigger_key, false)
+	var is_pressed := event.axis_value >= (TRIGGER_RELEASE_THRESHOLD if was_pressed else TRIGGER_PRESS_THRESHOLD)
+	if is_pressed == was_pressed:
+		return
+	trigger_states[trigger_key] = is_pressed
+	var action_event := InputEventAction.new()
+	action_event.action = action_name
+	action_event.pressed = is_pressed
+	action_event.strength = 1.0 if is_pressed else 0.0
+	action_event.device = event.device
+	Input.parse_input_event(action_event)
 
 func spawn_players() -> void:
 	player_amount = 0
